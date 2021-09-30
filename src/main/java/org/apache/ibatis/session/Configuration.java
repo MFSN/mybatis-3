@@ -144,11 +144,12 @@ public class Configuration {
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
-
+  // 用于装所有的增删改查的sql statement
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection");
   protected final Map<String, Cache> caches = new StrictMap<Cache>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<ResultMap>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<ParameterMap>("Parameter Maps collection");
+  // 用于装insert节点相应的主键KeyGenerator
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<KeyGenerator>("Key Generators collection");
 
   protected final Set<String> loadedResources = new HashSet<String>();

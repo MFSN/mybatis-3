@@ -54,6 +54,7 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   public void parseStatementNode() {
+    // 注意这个context表示的是<select/>,<delete/>,<update/>和<insert/>节点
     String id = context.getStringAttribute("id");
     String databaseId = context.getStringAttribute("databaseId");
 
@@ -73,6 +74,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 
     Class<?> resultTypeClass = resolveClass(resultType);
     String resultSetType = context.getStringAttribute("resultSetType");
+    // 如果<insert/>,<delete/>,<update/>和<select/>节点没有指定statementType属性，默认用StatementType.PREPARED
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
 
@@ -157,9 +159,9 @@ public class XMLStatementBuilder extends BaseBuilder {
         fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
         resultSetTypeEnum, flushCache, useCache, resultOrdered,
         keyGenerator, keyProperty, keyColumn, databaseId, langDriver, null);
-
+    // currentNamespace + "." + id
     id = builderAssistant.applyCurrentNamespace(id, false);
-
+    // keyStatement其实就是前面builderAssistant.addMappedStatement方法创建的实例添加到了configuration的mappedStatements集合中，现在再取出来而已
     MappedStatement keyStatement = configuration.getMappedStatement(id, false);
     configuration.addKeyGenerator(id, new SelectKeyGenerator(keyStatement, executeBefore));
   }

@@ -82,12 +82,13 @@ public class XMLScriptBuilder extends BaseBuilder {
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
+        // 注意：凡是含有#{}占位符都会被认为动态sql哈
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
         } else {
           contents.add(new StaticTextSqlNode(data));
-        }
+        }// ELEMENT_NODE类型即动态sql标签比如<where/>
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
         String nodeName = child.getNode().getNodeName();
         NodeHandler handler = nodeHandlerMap.get(nodeName);

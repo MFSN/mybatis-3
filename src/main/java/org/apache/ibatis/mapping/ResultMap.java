@@ -42,11 +42,11 @@ public class ResultMap {
   private String id;
   private Class<?> type;
   private List<ResultMapping> resultMappings;
-  private List<ResultMapping> idResultMappings;
-  private List<ResultMapping> constructorResultMappings;
-  private List<ResultMapping> propertyResultMappings;
-  private Set<String> mappedColumns;
-  private Set<String> mappedProperties;
+  private List<ResultMapping> idResultMappings; // 用于装 <id> 与 <idArg> 标签的 ResultMapping 实例对象
+  private List<ResultMapping> constructorResultMappings;// 用于装 <idArgs> 与 <arg> 标签的 ResultMapping 实例对象
+  private List<ResultMapping> propertyResultMappings; // 用于装 <id> 与 <result> 标签的 ResultMapping 实例对象
+  private Set<String> mappedColumns; // 用于装 <id>、<result>、<idArg>、<arg> 标签的 column 字段
+  private Set<String> mappedProperties; // 用于装 <id> 与 <result> 标签的 property 字段，或 <idArgs> 与 <arg> 标签的 name 字段
   private Discriminator discriminator;
   private boolean hasNestedResultMaps;
   private boolean hasNestedQueries;
