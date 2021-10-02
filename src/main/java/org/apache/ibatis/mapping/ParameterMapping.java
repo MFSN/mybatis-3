@@ -122,6 +122,7 @@ public class ParameterMapping {
     }
 
     private void resolveTypeHandler() {
+      // 重要：如果#{}中没有指定typeHandler，则根据javaType和jdbcType从TypeHandlerRegistry找出一个typeHandler出来 TODO QEUSTION:假如#{}没指定javaType呢，为啥javaType一般不为空呢？
       if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
         Configuration configuration = parameterMapping.configuration;
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();

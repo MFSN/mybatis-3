@@ -432,7 +432,7 @@ public final class TypeHandlerRegistry {
       } catch (Exception e) {
         throw new TypeException("Failed invoking constructor for handler " + typeHandlerClass, e);
       }
-    }
+    }// 如果某些#{}占位符指定了typeHandler，在buildParameterMapping时会通过反射创建一个该属性对应的typeHandler实例出来
     try {
       Constructor<?> c = typeHandlerClass.getConstructor();
       return (TypeHandler<T>) c.newInstance();

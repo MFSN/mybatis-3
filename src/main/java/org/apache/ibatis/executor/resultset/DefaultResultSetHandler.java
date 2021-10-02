@@ -62,6 +62,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * 【重要】对查询结果集进行处理，同时调用typeHandler的getResult方法
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Iwao AVE!
@@ -213,7 +214,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
         resultSetCount++;
       }
     }
-
+    // 将最终查询结果返回
     return collapseSingleResultList(multipleResults);
   }
 
@@ -298,10 +299,13 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       if (parentMapping != null) {
         handleRowValues(rsw, resultMap, null, RowBounds.DEFAULT, parentMapping);
       } else {
+        // 如果用户没有自定义ResultHandler，那么查询出来的数据直接需要添加到multipleResults返回给用户处理
         if (resultHandler == null) {
           DefaultResultHandler defaultResultHandler = new DefaultResultHandler(objectFactory);
           handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);
+          // 因为handleRowValues将查询结果数据放进了defaultResultHandler的list集合，这里再将其取出来放进multipleResults集合
           multipleResults.add(defaultResultHandler.getResultList());
+          // 如果用户自定义了ResultHandler，那么查询出来的数据直接在ResultHandler中处理即可
         } else {
           handleRowValues(rsw, resultMap, resultHandler, rowBounds, null);
         }
@@ -367,7 +371,10 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   @SuppressWarnings("unchecked" /* because ResultHandler<?> is always ResultHandler<Object>*/)
   private void callResultHandler(ResultHandler<?> resultHandler, DefaultResultContext<Object> resultContext, Object rowValue) {
+    // rowValue就是从数据库取出来的一行数据，即装着一行查询数据的一个entity实例
     resultContext.nextResultObject(rowValue);
+    // 1）如果是自定义ResultHandler，那么最终会在这里调用
+    // 2）如果没有用户自定义ResultHandler，返回类型不是Map类型，那么默认的是DefaultResultHandler；返回类型是Map类型，那么默认是DefaultMapResultHandler
     ((ResultHandler<Object>) resultHandler).handleResult(resultContext);
   }
 
@@ -395,11 +402,14 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     final ResultLoaderMap lazyLoader = new ResultLoaderMap();
     Object rowValue = createResultObject(rsw, resultMap, lazyLoader, null);
     if (rowValue != null && !hasTypeHandlerForResultObject(rsw, resultMap.getType())) {
+      // 创建resultMap中定义的type实例
       final MetaObject metaObject = configuration.newMetaObject(rowValue);
       boolean foundValues = this.useConstructorMappings;
+      // 【重要】是否需要自动映射，默认开启，为resultType或resultMap未定义的属性进行自动映射和赋值，其中resultType也是利用resultMap的原理来自动映射的
       if (shouldApplyAutomaticMappings(resultMap, false)) {
         foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, null) || foundValues;
       }
+      // 【重要】为resultMap中配置的属性进行赋值
       foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, null) || foundValues;
       foundValues = lazyLoader.size() > 0 || foundValues;
       rowValue = foundValues || configuration.isReturnInstanceForEmptyRow() ? rowValue : null;
@@ -468,6 +478,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     } else {
       final TypeHandler<?> typeHandler = propertyMapping.getTypeHandler();
       final String column = prependPrefix(propertyMapping.getColumn(), columnPrefix);
+      // 【重要】查询结果设值一般会调用到这里的typeHandler.getResult(rs, column)
       return typeHandler.getResult(rs, column);
     }
   }

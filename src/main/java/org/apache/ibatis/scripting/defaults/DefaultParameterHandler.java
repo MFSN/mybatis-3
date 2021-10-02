@@ -33,6 +33,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 【重要】设置参数值，同时调用typeHandler的setParameter方法
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -57,7 +58,7 @@ public class DefaultParameterHandler implements ParameterHandler {
   public Object getParameterObject() {
     return parameterObject;
   }
-
+  // 设置参数值到prepareStatement的sql的占位符?中
   @Override
   public void setParameters(PreparedStatement ps) {
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
@@ -72,8 +73,10 @@ public class DefaultParameterHandler implements ParameterHandler {
             value = boundSql.getAdditionalParameter(propertyName);
           } else if (parameterObject == null) {
             value = null;
+            // 如果传入的参数值有相应的typeHandler，则在下面直接将该参数值传入typeHandler中处理
           } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
             value = parameterObject;
+            // 若parameterObject没有对应的typeHandler，此时该类很可能是一个类比如People类，此时获取到People的属性值比如Name，然后在下面直接将该参数值传入typeHandler中处理
           } else {
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             value = metaObject.getValue(propertyName);
@@ -82,7 +85,7 @@ public class DefaultParameterHandler implements ParameterHandler {
           JdbcType jdbcType = parameterMapping.getJdbcType();
           if (value == null && jdbcType == null) {
             jdbcType = configuration.getJdbcTypeForNull();
-          }
+          }// 重要，在增删改查时设置参数此时调用的typeHandler.setParameter(ps, i + 1, value, jdbcType);
           try {
             typeHandler.setParameter(ps, i + 1, value, jdbcType);
           } catch (TypeException e) {

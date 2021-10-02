@@ -80,7 +80,7 @@ public class SqlSourceBuilder extends BaseBuilder {
         propertyType = java.sql.ResultSet.class;
       } else if (property == null || Map.class.isAssignableFrom(parameterType)) {
         propertyType = Object.class;
-      } else {
+      } else {// 对于自定义类型比如People，parameterType对应People，property是People中的一个属性，然后可以根据Getter方法获取该属性的java类型
         MetaClass metaClass = MetaClass.forClass(parameterType, configuration.getReflectorFactory());
         if (metaClass.hasGetter(property)) {
           propertyType = metaClass.getGetterType(property);

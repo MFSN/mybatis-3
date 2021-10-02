@@ -73,7 +73,7 @@ public class ResultSetWrapper {
   public List<String> getClassNames() {
     return Collections.unmodifiableList(classNames);
   }
-
+  // 从这里可以知道，jdbc查询出来的结果能知道每个字段的列明和相应的jdbcType
   public JdbcType getJdbcType(String columnName) {
     for (int i = 0 ; i < columnNames.size(); i++) {
       if (columnNames.get(i).equalsIgnoreCase(columnName)) {
