@@ -68,7 +68,7 @@ public class MapTypeHandlerTest {
       sqlSession.close();
     }
   }
-
+  // TODO:源码分析从这里开始
   @Test(expected=PersistenceException.class)
   public void shouldGetAUserFromXML() {
     SqlSession sqlSession = sqlSessionFactory.openSession();
@@ -78,6 +78,7 @@ public class MapTypeHandlerTest {
       params.put("id", 1);
       params.put("name", "User1");
       User user = mapper.getUserXML(params);
+      System.out.println(1);
       Assert.assertEquals("User1", user.getName());
     } finally {
       sqlSession.close();
