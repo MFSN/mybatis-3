@@ -21,12 +21,46 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
-    <properties resource="org\apache\ibatis\mybatistest\jdbc.properties"/>
-
+    <properties resource="org\apache\ibatis\mybatistest\jdbc.properties">
+        <property name="xxx" value="xxx"/>
+    </properties>
+    <settings>
+        <!-- settings配置必须是Configuration的属性-->
+        <setting name="cacheEnabled" value="true"/>
+        <!--<setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="useColumnLabel" value="true"/>
+        <setting name="useGeneratedKeys" value="false"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="autoMappingUnknownColumnBehavior" value="WARNING"/>
+        <setting name="defaultExecutorType" value="SIMPLE"/>
+        <setting name="defaultStatementTimeout" value="30"/>
+        <setting name="defaultFetchSize" value="200"/>
+        <setting name="safeRowBoundsEnabled" value="false"/>
+        <setting name="mapUnderscoreToCamelCase" value="false"/>
+        <setting name="localCacheScope" value="SESSION"/>
+        <setting name="jdbcTypeForNull" value="OTHER"/>
+        <setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>-->
+    </settings>
+    <typeAliases>
+        <!--<package name="org.apache.ibatis.mybatistest.model"/>
+        <package name="org.apache.ibatis.mybatistest.model"/>-->
+        <typeAlias type="org.apache.ibatis.mybatistest.model.User" alias="user"></typeAlias>
+    </typeAliases>
     <typeHandlers>
         <package name="org.apache.ibatis.mybatistest.typehandler"/>
     </typeHandlers>
-
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+            <property name="dialect" value="mysql"/>
+            <property name="offsetAsPageNum" value="false"/>
+            <property name="rowBoundsWithCount" value="false"/>
+            <property name="pageSizeZero" value="true"/>
+            <property name="reasonable" value="false"/>
+            <property name="supportMethodsArguments" value="false"/>
+            <property name="returnPageInfo" value="none"/>
+        </plugin>
+    </plugins>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>

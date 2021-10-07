@@ -40,7 +40,7 @@ public class TypeAliasRegistry {
   private final Map<String, Class<?>> TYPE_ALIASES = new HashMap<String, Class<?>>();
 
   public TypeAliasRegistry() {
-    registerAlias("string", String.class);
+    registerAlias("string", String.class); // 存入TYPE_ALIASES集合
 
     registerAlias("byte", Byte.class);
     registerAlias("long", Long.class);
@@ -126,6 +126,7 @@ public class TypeAliasRegistry {
   }
 
   public void registerAliases(String packageName, Class<?> superType){
+    // 【工具类】可以直接用ResolverUtil来扫描包下的类
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
     Set<Class<? extends Class<?>>> typeSet = resolverUtil.getClasses();
@@ -139,12 +140,12 @@ public class TypeAliasRegistry {
   }
 
   public void registerAlias(Class<?> type) {
-    String alias = type.getSimpleName();
-    Alias aliasAnnotation = type.getAnnotation(Alias.class);
+    String alias = type.getSimpleName();// 没有Alias注解，默认用类的SimpleName
+    Alias aliasAnnotation = type.getAnnotation(Alias.class); // 得到Alias注解
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     } 
-    registerAlias(alias, type);
+    registerAlias(alias, type); // 注册类别名
   }
 
   public void registerAlias(String alias, Class<?> value) {

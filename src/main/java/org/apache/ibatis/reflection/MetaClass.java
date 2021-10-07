@@ -32,7 +32,7 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 public class MetaClass {
 
   private final ReflectorFactory reflectorFactory;
-  private final Reflector reflector;
+  private final Reflector reflector; // ReflectorFactory是Reflector工厂类
 
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
     this.reflectorFactory = reflectorFactory;

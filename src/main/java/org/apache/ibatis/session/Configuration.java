@@ -118,10 +118,10 @@ public class Configuration {
   protected Set<String> lazyLoadTriggerMethods = new HashSet<String>(Arrays.asList(new String[] { "equals", "clone", "hashCode", "toString" }));
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
-  protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
-  protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
+  protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE; // 默认是SimpleExecutor
+  protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL; // 默认是AutoMappingBehavior.PARTIAL，Will only auto-map results with no nested result mappings defined inside.
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
-
+  // 对应<properties>标签的键值对，来自resource,url或直接xml定义键值对
   protected Properties variables = new Properties();
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
@@ -139,22 +139,22 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
-  protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
-  protected final InterceptorChain interceptorChain = new InterceptorChain();
-  protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
-  protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  protected final MapperRegistry mapperRegistry = new MapperRegistry(this);// 里面的Map<Class<?>, MapperProxyFactory<?>>集合存储了Mapper类和MapperProxyFactory映射信息，用于构建Mapper代理类MapperProxy
+  protected final InterceptorChain interceptorChain = new InterceptorChain(); // 拦截器链，可用于拦截Executor,StatementHandler,ParameterHandler和ResultSetHandler对象的相关方法
+  protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(); // 用于注册typeHandler,新建该实例会进行各种TypeHandler的初始化
+  protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry(); // 用于注册别名,新建该实例会进行各种别名的初始化
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
-  // 用于装所有的增删改查的sql statement
+  // 用于装所有的增删改查的sql statement，键为namespace+id
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection");
   protected final Map<String, Cache> caches = new StrictMap<Cache>("Caches collection");
-  protected final Map<String, ResultMap> resultMaps = new StrictMap<ResultMap>("Result Maps collection");
+  protected final Map<String, ResultMap> resultMaps = new StrictMap<ResultMap>("Result Maps collection"); // 用于存储mapper.xml的ResultMap，键为namespace+id，其中ResultMap中包含了各种ResultMapping集合
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<ParameterMap>("Parameter Maps collection");
   // 用于装insert节点相应的主键KeyGenerator
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<KeyGenerator>("Key Generators collection");
 
   protected final Set<String> loadedResources = new HashSet<String>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<XNode>("XML fragments parsed from previous mappers");
-
+  // 这几个集合用于解析未解析完的xml
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<XMLStatementBuilder>();
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<CacheRefResolver>();
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<ResultMapResolver>();
@@ -239,6 +239,7 @@ public class Configuration {
   public boolean isCallSettersOnNulls() {
     return callSettersOnNulls;
   }
+
 
   public void setCallSettersOnNulls(boolean callSettersOnNulls) {
     this.callSettersOnNulls = callSettersOnNulls;

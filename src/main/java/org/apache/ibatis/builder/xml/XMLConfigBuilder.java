@@ -83,7 +83,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
-    super(new Configuration());
+    super(new Configuration()); // Configuration实例在这里新建，新建Configuration实例会做以下事情：1，调用typeAliasRegistry注册别名；2，实例并初始化一些基础资源比如mapperRegistry，interceptorChain，typeHandlerRegistry和typeAliasRegistry等实例
     ErrorContext.instance().resource("SQL Mapper Configuration");
     this.configuration.setVariables(props);
     this.parsed = false;
@@ -96,27 +96,27 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
-    parseConfiguration(parser.evalNode("/configuration"));
+    parseConfiguration(parser.evalNode("/configuration")); // 解析<configuration>标签
     return configuration;
   }
-
+  // 解析mybatis-config.xml的各种标签
   private void parseConfiguration(XNode root) {
     try {
       //issue #117 read properties first
       propertiesElement(root.evalNode("properties"));
-      Properties settings = settingsAsProperties(root.evalNode("settings"));
-      loadCustomVfs(settings);
-      typeAliasesElement(root.evalNode("typeAliases"));
-      pluginElement(root.evalNode("plugins"));
-      objectFactoryElement(root.evalNode("objectFactory"));
-      objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
-      reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      Properties settings = settingsAsProperties(root.evalNode("settings")); // 解析settings标签
+      loadCustomVfs(settings);// 获取<settings>标签的vfsImpl配置，并设置进configuration的vfsImpl属性
+      typeAliasesElement(root.evalNode("typeAliases"));// 解析typeAliases标签
+      pluginElement(root.evalNode("plugins")); // 解析plugins标签
+      objectFactoryElement(root.evalNode("objectFactory")); // 解析objectFactory标签
+      objectWrapperFactoryElement(root.evalNode("objectWrapperFactory")); // 解析objectWrapperFactory标签
+      reflectorFactoryElement(root.evalNode("reflectorFactory")); // 解析reflectorFactory标签
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
-      environmentsElement(root.evalNode("environments"));
-      databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-      typeHandlerElement(root.evalNode("typeHandlers"));
-      mapperElement(root.evalNode("mappers"));
+      environmentsElement(root.evalNode("environments")); // 解析environments标签
+      databaseIdProviderElement(root.evalNode("databaseIdProvider")); // 解析databaseIdProvider标签
+      typeHandlerElement(root.evalNode("typeHandlers")); // 解析typeHandlers标签
+      mapperElement(root.evalNode("mappers")); // 解析mappers标签
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
     }
@@ -128,9 +128,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
     Properties props = context.getChildrenAsProperties();
     // Check that all settings are known to the configuration class
-    MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
+    MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory); // 新建一个MetaClass实例,里面包含了Configuration类的各种反射信息，其中localReflectorFactory为DefaultReflectorFactory实例
     for (Object key : props.keySet()) {
-      if (!metaConfig.hasSetter(String.valueOf(key))) {
+      if (!metaConfig.hasSetter(String.valueOf(key))) { // 检查MetaClass的setMethods集合是否包含setting标签的属性，否则报错
         throw new BuilderException("The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
       }
     }
@@ -154,7 +154,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
-        if ("package".equals(child.getName())) {
+        if ("package".equals(child.getName())) {// 如果配置了typeAliases标签的package属性，那么将扫描该package包下的类，并注册该类的别名
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
@@ -215,17 +215,17 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
-      Properties defaults = context.getChildrenAsProperties();
+      Properties defaults = context.getChildrenAsProperties(); // 得到properties标签的子标签properties的键值对存入defaults实例
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
         throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
-      if (resource != null) {
+      if (resource != null) { // 若<properties>标签属性resource或url不为null，那么根据resource或url加载的Properties一并存入defaults实例中
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
-      }
+      }// 这里configuration的properties属性一般为Null
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);

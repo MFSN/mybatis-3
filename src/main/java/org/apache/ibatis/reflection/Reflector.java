@@ -59,9 +59,9 @@ public class Reflector {
 
   public Reflector(Class<?> clazz) {
     type = clazz;
-    addDefaultConstructor(clazz);
-    addGetMethods(clazz);
-    addSetMethods(clazz);
+    addDefaultConstructor(clazz); // 给Reflector实例的defaultConstructor赋予无参构造函数
+    addGetMethods(clazz); // 给Reflector实例的getMethods和getTypes集合添加get或is方法
+    addSetMethods(clazz); // 给Reflector实例的setMethods和getTypes集合添加set方法
     addFields(clazz);
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
@@ -93,7 +93,7 @@ public class Reflector {
 
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<String, List<Method>>();
-    Method[] methods = getClassMethods(cls);
+    Method[] methods = getClassMethods(cls); // 得到该类，父类及接口的所有方法
     for (Method method : methods) {
       if (method.getParameterTypes().length > 0) {
         continue;
@@ -102,10 +102,10 @@ public class Reflector {
       if ((name.startsWith("get") && name.length() > 3)
           || (name.startsWith("is") && name.length() > 2)) {
         name = PropertyNamer.methodToProperty(name);
-        addMethodConflict(conflictingGetters, name, method);
+        addMethodConflict(conflictingGetters, name, method); // 将cls的所有get或is方法添加进conflictingGetters集合
       }
     }
-    resolveGetterConflicts(conflictingGetters);
+    resolveGetterConflicts(conflictingGetters); // 将conflictingGetters集合的一些重复方法进行解析，最后添加进getMethods和getTypes集合
   }
 
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
@@ -262,7 +262,7 @@ public class Reflector {
         }
       }
       if (field.isAccessible()) {
-        if (!setMethods.containsKey(field.getName())) {
+        if (!setMethods.containsKey(field.getName())) {// 对于类如mapperRegistry成员变量，因为没有setMapperRegistry方法，所以也会人为的制造并加入setMethods和setTypes
           // issue #379 - removed the check for final because JDK 1.5 allows
           // modification of final fields through reflection (JSR-133). (JGB)
           // pr #16 - final static can only be set by the classloader
@@ -271,7 +271,7 @@ public class Reflector {
             addSetField(field);
           }
         }
-        if (!getMethods.containsKey(field.getName())) {
+        if (!getMethods.containsKey(field.getName())) {// 对于类如cacheRefMap成员变量，因为没有getCacheRefMap方法，所以也会人为的制造并加入getMethods和getTypes
           addGetField(field);
         }
       }
@@ -346,7 +346,7 @@ public class Reflector {
               // Ignored. This is only a final precaution, nothing we can do.
             }
           }
-
+          // key :org.apache.ibatis.cache.Cache#getCache:java.lang.String  value:Method
           uniqueMethods.put(signature, currentMethod);
         }
       }

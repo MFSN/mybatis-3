@@ -41,7 +41,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
   public DefaultSqlSessionFactory(Configuration configuration) {
     this.configuration = configuration;
   }
-
+  // 注意：openSessionFromDataSource方法会自动设置autoCommit为false，因此需要手动调用sqlSession.commit后增删改才有效
   @Override
   public SqlSession openSession() {
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);

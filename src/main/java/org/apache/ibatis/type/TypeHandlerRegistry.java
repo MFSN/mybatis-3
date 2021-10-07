@@ -54,47 +54,48 @@ import org.apache.ibatis.reflection.Jdk;
  */
 public final class TypeHandlerRegistry {
 
-  private final Map<JdbcType, TypeHandler<?>> JDBC_TYPE_HANDLER_MAP = new EnumMap<JdbcType, TypeHandler<?>>(JdbcType.class);
-  private final Map<Type, Map<JdbcType, TypeHandler<?>>> TYPE_HANDLER_MAP = new ConcurrentHashMap<Type, Map<JdbcType, TypeHandler<?>>>();
-  private final TypeHandler<Object> UNKNOWN_TYPE_HANDLER = new UnknownTypeHandler(this);
-  private final Map<Class<?>, TypeHandler<?>> ALL_TYPE_HANDLERS_MAP = new HashMap<Class<?>, TypeHandler<?>>();
+  private final Map<JdbcType, TypeHandler<?>> JDBC_TYPE_HANDLER_MAP = new EnumMap<JdbcType, TypeHandler<?>>(JdbcType.class); // 因为JdbcType为枚举，因此这里创建一个EnumMap，key只能是JdbcType类型
+  private final Map<Type, Map<JdbcType, TypeHandler<?>>> TYPE_HANDLER_MAP = new ConcurrentHashMap<Type, Map<JdbcType, TypeHandler<?>>>();// 举个例子，String可以对应多种JdbcType比如CHAR或VARCHAR，而每种JdbcType可以对应一种TypeHandler等，因此这里创建Map<Type, Map<JdbcType, TypeHandler<?>>>
+  private final TypeHandler<Object> UNKNOWN_TYPE_HANDLER = new UnknownTypeHandler(this); // UnknownTypeHandler处理参数值为null或相应类型没有typeHandler，那么UnknownTypeHandler默认会调用ObjectTypeHandler去处理
+  private final Map<Class<?>, TypeHandler<?>> ALL_TYPE_HANDLERS_MAP = new HashMap<Class<?>, TypeHandler<?>>(); // 存储所有的typeHandler类型（注意不是JavaType哈）与typeHandler实例的映射关系
 
   private static final Map<JdbcType, TypeHandler<?>> NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
 
-  private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class;
+  private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class; // 遇到枚举类型，如果没有相应的枚举typehandler，那么默认会用EnumTypeHandler？记得还有一个EnumOrdinalTypeHandler
 
   public TypeHandlerRegistry() {
-    register(Boolean.class, new BooleanTypeHandler());
+    // 注册BooleanTypeHandler，对应Boolean.class，boolean.class，JdbcType.BOOLEAN等
+    register(Boolean.class, new BooleanTypeHandler()); // 【情况1】1，存入TYPE_HANDLER_MAP，注意内层集合Map<JdbcType, TypeHandler<?>>的键JdbcType值为null；TODO QUESTION:为何要存入null呢？2，存入ALL_TYPE_HANDLERS_MAP
     register(boolean.class, new BooleanTypeHandler());
-    register(JdbcType.BOOLEAN, new BooleanTypeHandler());
+    register(JdbcType.BOOLEAN, new BooleanTypeHandler()); // 【情况2】两者映射关系直接存入JDBC_TYPE_HANDLER_MAP集合
     register(JdbcType.BIT, new BooleanTypeHandler());
-
+    // 注册ByteTypeHandler
     register(Byte.class, new ByteTypeHandler());
     register(byte.class, new ByteTypeHandler());
     register(JdbcType.TINYINT, new ByteTypeHandler());
-
+    // 注册ShortTypeHandler
     register(Short.class, new ShortTypeHandler());
     register(short.class, new ShortTypeHandler());
     register(JdbcType.SMALLINT, new ShortTypeHandler());
-
+    // 注册IntegerTypeHandler
     register(Integer.class, new IntegerTypeHandler());
     register(int.class, new IntegerTypeHandler());
     register(JdbcType.INTEGER, new IntegerTypeHandler());
-
+    // 注册LongTypeHandler
     register(Long.class, new LongTypeHandler());
     register(long.class, new LongTypeHandler());
-
+    // 注册FloatTypeHandler
     register(Float.class, new FloatTypeHandler());
     register(float.class, new FloatTypeHandler());
     register(JdbcType.FLOAT, new FloatTypeHandler());
-
+    // 注册DoubleTypeHandler
     register(Double.class, new DoubleTypeHandler());
     register(double.class, new DoubleTypeHandler());
     register(JdbcType.DOUBLE, new DoubleTypeHandler());
-
+    // 注册String对应的相关TypeHandler
     register(Reader.class, new ClobReaderTypeHandler());
     register(String.class, new StringTypeHandler());
-    register(String.class, JdbcType.CHAR, new StringTypeHandler());
+    register(String.class, JdbcType.CHAR, new StringTypeHandler()); // 【情况3】1，存入TYPE_HANDLER_MAP，注意内层集合Map<JdbcType, TypeHandler<?>>的键JdbcType值为JdbcType.CHAR；2，存入ALL_TYPE_HANDLERS_MA
     register(String.class, JdbcType.CLOB, new ClobTypeHandler());
     register(String.class, JdbcType.VARCHAR, new StringTypeHandler());
     register(String.class, JdbcType.LONGVARCHAR, new ClobTypeHandler());
@@ -108,18 +109,18 @@ public final class TypeHandlerRegistry {
     register(JdbcType.NVARCHAR, new NStringTypeHandler());
     register(JdbcType.NCHAR, new NStringTypeHandler());
     register(JdbcType.NCLOB, new NClobTypeHandler());
-
+    // 注册
     register(Object.class, JdbcType.ARRAY, new ArrayTypeHandler());
     register(JdbcType.ARRAY, new ArrayTypeHandler());
-
+    // 注册
     register(BigInteger.class, new BigIntegerTypeHandler());
     register(JdbcType.BIGINT, new LongTypeHandler());
-
+    // 注册BigDecimalTypeHandler TODO QUESTION:为何String类对应多种JdbcType就需要显式调用类如register(String.class, JdbcType.CHAR, new StringTypeHandler());而这里就不用？
     register(BigDecimal.class, new BigDecimalTypeHandler());
     register(JdbcType.REAL, new BigDecimalTypeHandler());
     register(JdbcType.DECIMAL, new BigDecimalTypeHandler());
     register(JdbcType.NUMERIC, new BigDecimalTypeHandler());
-
+    // 注册
     register(InputStream.class, new BlobInputStreamTypeHandler());
     register(Byte[].class, new ByteObjectArrayTypeHandler());
     register(Byte[].class, JdbcType.BLOB, new BlobByteObjectArrayTypeHandler());
@@ -129,22 +130,22 @@ public final class TypeHandlerRegistry {
     register(byte[].class, JdbcType.LONGVARBINARY, new BlobTypeHandler());
     register(JdbcType.LONGVARBINARY, new BlobTypeHandler());
     register(JdbcType.BLOB, new BlobTypeHandler());
-
+    // 注册
     register(Object.class, UNKNOWN_TYPE_HANDLER);
     register(Object.class, JdbcType.OTHER, UNKNOWN_TYPE_HANDLER);
     register(JdbcType.OTHER, UNKNOWN_TYPE_HANDLER);
-
+    // 注册
     register(Date.class, new DateTypeHandler());
     register(Date.class, JdbcType.DATE, new DateOnlyTypeHandler());
     register(Date.class, JdbcType.TIME, new TimeOnlyTypeHandler());
     register(JdbcType.TIMESTAMP, new DateTypeHandler());
     register(JdbcType.DATE, new DateOnlyTypeHandler());
     register(JdbcType.TIME, new TimeOnlyTypeHandler());
-
+    // 注册
     register(java.sql.Date.class, new SqlDateTypeHandler());
     register(java.sql.Time.class, new SqlTimeTypeHandler());
     register(java.sql.Timestamp.class, new SqlTimestampTypeHandler());
-
+    // 注册
     // mybatis-typehandlers-jsr310
     if (Jdk.dateAndTimeApiExists) {
       this.register(Instant.class, InstantTypeHandler.class);
@@ -159,7 +160,7 @@ public final class TypeHandlerRegistry {
       this.register(YearMonth.class, YearMonthTypeHandler.class);
       this.register(JapaneseDate.class, JapaneseDateTypeHandler.class);
     }
-
+    // 注册CharacterTypeHandler
     // issue #273
     register(Character.class, new CharacterTypeHandler());
     register(char.class, new CharacterTypeHandler());
@@ -348,15 +349,15 @@ public final class TypeHandlerRegistry {
   }
 
   private <T> void register(Type javaType, TypeHandler<? extends T> typeHandler) {
-    MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);
+    MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);// 取出typeHandler类的MappedJdbcTypes注解，一般自定义的typeHandler会有MappedJdbcTypes注解
     if (mappedJdbcTypes != null) {
-      for (JdbcType handledJdbcType : mappedJdbcTypes.value()) {
+      for (JdbcType handledJdbcType : mappedJdbcTypes.value()) { // 遍历mappedJdbcTypes的值，然后进行逐个注册
         register(javaType, handledJdbcType, typeHandler);
-      }
+      }// 如果mappedJdbcTypes.includeNullJdbcType为true,那么对应的javaType也会注册一个null jdbctype的handler TODO QEUSTION:有何用？还有Mybatis自带的typeHandler都是注册的这种类型
       if (mappedJdbcTypes.includeNullJdbcType()) {
         register(javaType, null, typeHandler);
       }
-    } else {
+    } else {// 【注意】mybatis默认的typeHandler比如BooleanTypeHandler等都是不带MappedJdbcTypes和MappedTypes注解的，因此jdbcType用null替代
       register(javaType, null, typeHandler);
     }
   }
@@ -376,9 +377,9 @@ public final class TypeHandlerRegistry {
       Map<JdbcType, TypeHandler<?>> map = TYPE_HANDLER_MAP.get(javaType);
       if (map == null || map == NULL_TYPE_HANDLER_MAP) {
         map = new HashMap<JdbcType, TypeHandler<?>>();
-        TYPE_HANDLER_MAP.put(javaType, map);
+        TYPE_HANDLER_MAP.put(javaType, map); // 注册javaType和handlerMap<JdbcType,TypeHandler>的对应关系
       }
-      map.put(jdbcType, handler);
+      map.put(jdbcType, handler); // 注册jdbcType和handler的对应关系
     }
     ALL_TYPE_HANDLERS_MAP.put(handler.getClass(), handler);
   }
