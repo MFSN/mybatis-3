@@ -49,6 +49,7 @@
     </typeAliases>
     <typeHandlers>
         <package name="org.apache.ibatis.mybatistest.typehandler"/>
+        <!--<typeHandler handler="xxx" javaType="xxx" jdbcType="xxx"/>-->
     </typeHandlers>
     <plugins>
         <plugin interceptor="com.github.pagehelper.PageHelper">
@@ -63,7 +64,9 @@
     </plugins>
     <environments default="development">
         <environment id="development">
-            <transactionManager type="JDBC"/>
+            <transactionManager type="JDBC">
+                <!--<property name="xxx" value="xxx"/>-->
+            </transactionManager>
             <dataSource type="POOLED">
                 <property name="driver" value="${jdbc.driver}"/>
                 <property name="url" value="${jdbc.url}"/>
@@ -72,6 +75,10 @@
             </dataSource>
         </environment>
     </environments>
+
+    <databaseIdProvider type="">
+        <!--<property name="xxx" value=""/>-->
+    </databaseIdProvider>
 
 
 

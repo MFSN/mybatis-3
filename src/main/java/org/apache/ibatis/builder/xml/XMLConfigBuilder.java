@@ -111,10 +111,10 @@ public class XMLConfigBuilder extends BaseBuilder {
       objectFactoryElement(root.evalNode("objectFactory")); // 解析objectFactory标签
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory")); // 解析objectWrapperFactory标签
       reflectorFactoryElement(root.evalNode("reflectorFactory")); // 解析reflectorFactory标签
-      settingsElement(settings);
+      settingsElement(settings); // 前面解析好了settings标签，这里将settings标签的属性值设置进configuration实例中
       // read it after objectFactory and objectWrapperFactory issue #631
       environmentsElement(root.evalNode("environments")); // 解析environments标签
-      databaseIdProviderElement(root.evalNode("databaseIdProvider")); // 解析databaseIdProvider标签
+      databaseIdProviderElement(root.evalNode("databaseIdProvider")); // 解析databaseIdProvider标签，用于支持同一个mapper.xml文件能支持不同的数据库
       typeHandlerElement(root.evalNode("typeHandlers")); // 解析typeHandlers标签
       mapperElement(root.evalNode("mappers")); // 解析mappers标签
     } catch (Exception e) {
@@ -178,15 +178,15 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
-        String interceptor = child.getStringAttribute("interceptor");
-        Properties properties = child.getChildrenAsProperties();
-        Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+        String interceptor = child.getStringAttribute("interceptor"); // 获取plugin标签的interceptor属性值
+        Properties properties = child.getChildrenAsProperties(); // 获取plugin标签内子标签properties
+        Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance(); // 新建拦截器，并设置properties，最后添加到configuration的InterceptorChain中
         interceptorInstance.setProperties(properties);
         configuration.addInterceptor(interceptorInstance);
       }
     }
   }
-
+  // 解析逻辑跟plugin标签解析类似
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -207,7 +207,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void reflectorFactoryElement(XNode context) throws Exception {
     if (context != null) {
-       String type = context.getStringAttribute("type");
+       String type = context.getStringAttribute("type"); // 解析ReflectorFactory类并设置进configuration中
        ReflectorFactory factory = (ReflectorFactory) resolveClass(type).newInstance();
        configuration.setReflectorFactory(factory);
     }
@@ -234,7 +234,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       configuration.setVariables(defaults);
     }
   }
-
+  // 解析settings标签，并设置进configuration的成员变量中，没有则设置默认的值
   private void settingsElement(Properties props) throws Exception {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
@@ -256,7 +256,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty("safeResultHandlerEnabled"), true));
     configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty("defaultScriptingLanguage")));
     @SuppressWarnings("unchecked")
-    Class<? extends TypeHandler> typeHandler = (Class<? extends TypeHandler>)resolveClass(props.getProperty("defaultEnumTypeHandler"));
+    Class<? extends TypeHandler> typeHandler = (Class<? extends TypeHandler>)resolveClass(props.getProperty("defaultEnumTypeHandler")); // 设置默认的枚举typeHandler，因此可以在settings标签设置
     configuration.setDefaultEnumTypeHandler(typeHandler);
     configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty("callSettersOnNulls"), false));
     configuration.setUseActualParamName(booleanValueOf(props.getProperty("useActualParamName"), true));
@@ -270,12 +270,12 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
-      if (environment == null) {
+      if (environment == null) {// 获取environments标签default属性值
         environment = context.getStringAttribute("default");
-      }
+      }// 获取environments标签下的子标签environment标签
       for (XNode child : context.getChildren()) {
-        String id = child.getStringAttribute("id");
-        if (isSpecifiedEnvironment(id)) {
+        String id = child.getStringAttribute("id"); // 获取environment标签default属性值
+        if (isSpecifiedEnvironment(id)) {// 如果有指定enviment标签的id，则初始化该environment相关资源，，比如transactionManager和dataSource等，最终environment实例设置进configuration中
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
@@ -332,14 +332,14 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void typeHandlerElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
-        if ("package".equals(child.getName())) {
+        if ("package".equals(child.getName())) { // 如果是package标签，则扫描该package下的所有typeHandler类并注册，这里同样可以定义多个package标签哈
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
-        } else {
+        } else {// 如果是typeHandler标签，则一个一个进行注册
           String javaTypeName = child.getStringAttribute("javaType");
           String jdbcTypeName = child.getStringAttribute("jdbcType");
           String handlerTypeName = child.getStringAttribute("handler");
-          Class<?> javaTypeClass = resolveClass(javaTypeName);
+          Class<?> javaTypeClass = resolveClass(javaTypeName); // 这里javaType可能用的是别名，需要解析下
           JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
           if (javaTypeClass != null) {

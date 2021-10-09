@@ -394,12 +394,12 @@ public final class TypeHandlerRegistry {
     boolean mappedTypeFound = false;
     MappedTypes mappedTypes = typeHandlerClass.getAnnotation(MappedTypes.class);
     if (mappedTypes != null) {
-      for (Class<?> javaTypeClass : mappedTypes.value()) {
+      for (Class<?> javaTypeClass : mappedTypes.value()) {// 得到MappedTypes对应的javaType数组值，并逐个遍历，进行对应的typeHandler注册
         register(javaTypeClass, typeHandlerClass);
         mappedTypeFound = true;
       }
     }
-    if (!mappedTypeFound) {
+    if (!mappedTypeFound) {// 如果MappedTypes没有指定javaType，那么则
       register(getInstance(null, typeHandlerClass));
     }
   }
@@ -444,7 +444,7 @@ public final class TypeHandlerRegistry {
 
   // scan
 
-  public void register(String packageName) {
+  public void register(String packageName) {// 【重要】加载类的很好的工具类，可以直接用
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
     Set<Class<? extends Class<?>>> handlerSet = resolverUtil.getClasses();
